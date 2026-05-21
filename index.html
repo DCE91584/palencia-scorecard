@@ -1,0 +1,1328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Palencia Club Scorecard</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Roboto+Condensed:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+/* ════ THEMES ════ */
+:root{
+  --bg:#0d1f15;--surface:#152b1e;--card:#1c3828;--border:#2a5038;
+  --gold:#f0c040;--gold-dim:#8a6a20;--text:#ffffff;--muted:#9ecfb0;
+  --green:#4fd98a;--pos:#4fd988;--neg:#ff5555;
+  --t-gold:#f0c040;--t-green:#4fd98a;--t-black:#d0d0d0;--t-blue:#5aa8ff;
+}
+body.light{
+  --bg:#f4f6f2;--surface:#ffffff;--card:#eaf0e8;--border:#b8ccb4;
+  --gold:#8a6200;--gold-dim:#c9a84c;--text:#0a1a0e;--muted:#3a6646;
+  --green:#1a7a40;--pos:#1a7a40;--neg:#b02020;
+  --t-gold:#7a5a00;--t-green:#1a7a40;--t-black:#333;--t-blue:#1055b0;
+}
+body.dark{
+  --bg:#080f0b;--surface:#0f1e14;--card:#162419;--border:#1f3828;
+  --gold:#c9a84c;--gold-dim:#7a622c;--text:#e0ddd4;--muted:#6a9878;
+  --green:#3da868;--pos:#3da868;--neg:#cc4444;
+  --t-gold:#c9a84c;--t-green:#3da868;--t-black:#aaa;--t-blue:#4080cc;
+}
+/* Theme toggle button */
+.theme-toggle{display:flex;gap:4px;padding:6px 14px;background:var(--surface);border-bottom:1px solid var(--border);justify-content:flex-end;align-items:center}
+.theme-toggle span{font-size:9px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;margin-right:4px}
+.tt-btn{padding:4px 10px;border-radius:12px;border:1px solid var(--border);background:none;color:var(--muted);font-family:'Roboto Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:.08em;cursor:pointer;transition:all .15s}
+.tt-btn.active{background:var(--gold);color:#0a1a0e;border-color:var(--gold)}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;font-family:'Roboto Condensed',sans-serif;background:var(--bg);color:var(--text);font-size:16px}
+input[type=number]{-moz-appearance:textfield;appearance:textfield}
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+
+/* ── SCREENS ── */
+.screen{position:fixed;inset:0;bottom:58px;overflow-y:auto;-webkit-overflow-scrolling:touch;display:none}
+.screen.active{display:block}
+#s-hole{overflow:hidden;display:none;flex-direction:column}
+#s-hole.active{display:flex}
+
+/* ── NAV ── */
+#nav{position:fixed;bottom:0;left:0;right:0;height:58px;background:var(--surface);border-top:2px solid var(--border);display:flex;z-index:100}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:none;border:none;color:var(--muted);font-family:'Roboto Condensed',sans-serif;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:color .15s}
+.nav-btn.active{color:var(--gold)}
+.nav-icon{font-size:18px;line-height:1}
+
+/* ── HEADER ── */
+.pg-header{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px;text-align:center}
+.pg-title{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:.18em;color:var(--gold);line-height:1}
+.pg-sub{font-size:10px;color:var(--muted);letter-spacing:.22em;text-transform:uppercase;margin-top:1px}
+
+/* ════════ SETUP ════════ */
+.sect{padding:14px 16px}
+.sect-title{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;border-bottom:1px solid var(--border);padding-bottom:5px}
+.player-card{background:var(--card);border:1px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden}
+.player-top{display:flex;align-items:center;gap:8px;padding:10px 12px}
+.p-num{width:24px;height:24px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gold);flex-shrink:0}
+.p-name-in{flex:1;background:none;border:none;border-bottom:1px solid var(--border);color:var(--text);font-family:'Roboto Condensed',sans-serif;font-size:15px;font-weight:700;padding:2px 0;outline:none}
+.p-name-in::placeholder{color:var(--muted);font-weight:400}
+.lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;flex-shrink:0}
+.num-in{width:46px;background:var(--surface);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'Roboto Condensed',sans-serif;font-size:16px;font-weight:700;text-align:center;padding:4px;outline:none}
+.player-tee-row{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--border)}
+.ptee-btn{padding:9px 4px;border:none;border-right:1px solid var(--border);text-align:center;cursor:pointer;font-family:'Roboto Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:.04em;transition:all .15s;opacity:.35;background:transparent}
+.ptee-btn:last-child{border-right:none}
+.ptee-btn.sel{opacity:1}
+.ptee-btn[data-tee="gold"]{color:var(--t-gold)}.ptee-btn[data-tee="gold"].sel{background:#3a2e10}
+.ptee-btn[data-tee="green"]{color:var(--t-green)}.ptee-btn[data-tee="green"].sel{background:#0e301a}
+.ptee-btn[data-tee="black"]{color:var(--t-black)}.ptee-btn[data-tee="black"].sel{background:#2a2a2a}
+.ptee-btn[data-tee="blue"]{color:var(--t-blue)}.ptee-btn[data-tee="blue"].sel{background:#0e2040}
+/* Directory */
+.dir-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.dir-btn{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 10px;text-align:left;cursor:pointer;transition:all .15s;position:relative;overflow:hidden}
+.dir-btn.assigned{border-color:var(--gold);opacity:.55}
+.dir-btn.assigned::after{content:'✓';position:absolute;top:6px;right:8px;color:var(--gold);font-size:13px;font-weight:700}
+.dir-btn:active{background:var(--border)}
+.dir-name{font-size:13px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.04em;line-height:1.2;margin-bottom:2px}
+.dir-venmo{font-size:10px;color:var(--muted);letter-spacing:.04em}
+/* Venmo row on player card */
+.player-venmo-row{display:flex;align-items:center;gap:8px;padding:7px 12px;border-top:1px solid var(--border);background:rgba(0,0,0,.12)}
+.venmo-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;flex-shrink:0}
+.venmo-in{flex:1;background:none;border:none;border-bottom:1px solid var(--border);color:var(--t-blue);font-family:'Roboto Condensed',sans-serif;font-size:13px;font-weight:700;padding:2px 0;outline:none}
+.venmo-in::placeholder{color:var(--muted);font-weight:400}
+
+.start-btn{display:block;width:calc(100% - 32px);margin:6px 16px 16px;padding:15px;background:var(--gold);border:none;border-radius:8px;color:#1a2e22;font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:.18em;cursor:pointer;transition:opacity .15s}
+.start-btn:active{opacity:.8}
+.rtbl{width:100%;border-collapse:collapse;font-size:12px}
+.rtbl th{padding:3px 8px;color:var(--muted);font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;text-align:left}
+.rtbl td{padding:5px 8px;border-top:1px solid var(--border)}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:middle}
+
+/* ════════ HOLE SCREEN ════════ */
+.hole-fixed{flex-shrink:0}
+.hole-nav{display:flex;overflow-x:auto;scrollbar-width:none;background:var(--surface);border-bottom:1px solid var(--border)}
+.hole-nav::-webkit-scrollbar{display:none}
+.h-tab{flex-shrink:0;min-width:34px;padding:9px 4px;background:none;border:none;border-bottom:3px solid transparent;color:var(--muted);font-family:'Roboto Condensed',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;text-align:center}
+.h-tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+.h-tab.scored{color:var(--text)}
+.h-tab.summary-tab{font-size:10px;min-width:44px}
+
+.running-bar{display:flex;background:#192e22;border-bottom:2px solid var(--border);padding:5px 8px;gap:5px}
+.rt-cell{flex:1;text-align:center;padding:4px;border-radius:6px;background:var(--surface)}
+.rt-name{font-size:8px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rt-amt{font-family:'Bebas Neue',sans-serif;font-size:19px;line-height:1}
+.rt-amt.pos{color:var(--pos)}.rt-amt.neg{color:var(--neg)}.rt-amt.zero{color:var(--muted)}
+
+.hole-info{background:var(--card);border-bottom:1px solid var(--border);padding:8px 12px;display:flex;gap:0;align-items:stretch}
+.hi-stat{text-align:center;padding:0 10px;flex-shrink:0}
+.hi-label{font-size:8px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:1px}
+.hi-val{font-family:'Bebas Neue',sans-serif;font-size:26px;line-height:1}
+.hi-val.p3{color:var(--pos)}.hi-val.p4{color:var(--text)}.hi-val.p5{color:#e8a840}.hi-val.hcpv{color:var(--muted)}
+.hi-divider{width:1px;background:var(--border);flex-shrink:0;margin:4px 0}
+.yds-cell{flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 10px;gap:1px}
+.yds-line{font-size:10px;line-height:1.55;font-weight:700}
+
+.score-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:10px 14px}
+.s-divider{font-size:9px;text-transform:uppercase;letter-spacing:.22em;color:var(--muted);border-bottom:1px solid var(--border);padding-bottom:5px;margin-bottom:6px;margin-top:12px}
+.s-divider:first-child{margin-top:0}
+
+/* ── Single-line player row: num · name · score · money ── */
+.player-block{border-bottom:1px solid var(--border);padding:7px 0}
+.player-block:last-child{border-bottom:none}
+.player-block.selected .pb-row{background:rgba(255,255,255,.04);border-radius:6px}
+.pb-row{display:flex;align-items:center;gap:8px;padding:2px 0}
+.sc-pnum{width:20px;height:20px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--gold);flex-shrink:0;cursor:pointer}
+.sc-name{font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
+.score-in{width:52px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'Bebas Neue',sans-serif;font-size:26px;text-align:center;padding:2px 0;outline:none;flex-shrink:0}
+.score-in:focus{border-color:var(--gold)}
+.sc-net{font-size:9px;color:var(--muted);text-align:center;line-height:1.1;flex-shrink:0;width:36px}
+.dl-in{width:88px;background:var(--surface);border:1px solid var(--border);border-radius:6px;font-family:'Bebas Neue',sans-serif;font-size:24px;text-align:center;padding:3px 4px;outline:none;color:var(--muted);flex-shrink:0;cursor:pointer;user-select:none;-webkit-user-select:none}
+.dl-in:focus{border-color:var(--gold)}
+.dl-in.pos-in{color:var(--pos);border-color:var(--pos)}.dl-in.neg-in{color:var(--neg);border-color:var(--neg)}
+
+/* iPad undo-typing fix — suppress on all inputs */
+input,textarea{-webkit-user-select:text;user-select:text}
+
+/* ── Team score & scores-used button strips ── */
+.ts-strip{display:flex;gap:5px;flex:1}
+.ts-btn{flex:1;padding:10px 4px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--muted);font-family:'Bebas Neue',sans-serif;font-size:22px;cursor:pointer;text-align:center;transition:all .12s}
+.ts-btn:active{transform:scale(.93)}
+.ts-btn.ts-sel{background:var(--gold);color:#0a1a0e;border-color:var(--gold)}
+
+/* ── Card score-edit overlay ── */
+#card-edit-overlay{position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.6);display:none;align-items:flex-end}
+#card-edit-overlay.open{display:flex}
+#card-edit-sheet{width:100%;background:var(--surface);border-top:2px solid var(--gold);border-radius:16px 16px 0 0;padding:12px 12px calc(12px + env(safe-area-inset-bottom,0))}
+#card-edit-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+#card-edit-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:var(--muted)}
+#card-edit-val{font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--gold)}
+.card-qs-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px}
+.card-qs-btn{padding:14px 4px;border:1px solid var(--border);border-radius:8px;font-family:'Roboto Condensed',sans-serif;font-size:12px;font-weight:700;text-align:center;cursor:pointer;line-height:1.3;transition:all .12s}
+.card-qs-btn:active{transform:scale(.94)}
+.cqs-eagle{background:#2a2200;color:#f0c040;border-color:#c9a84c}
+.cqs-birdie{background:#0d2e18;color:var(--pos);border-color:var(--pos)}
+.cqs-par{background:var(--surface);color:var(--text);border-color:var(--border)}
+.cqs-bogey{background:#2e1a00;color:#e8a040;border-color:#c07020}
+.cqs-dbl{background:#2e0d0d;color:var(--neg);border-color:var(--neg)}
+.cqs-tri{background:#1e0808;color:#cc2222;border-color:#991111}
+.card-qs-btn.cqs-sel{outline:2px solid var(--gold);outline-offset:1px}
+.card-edit-done{width:100%;padding:13px;background:var(--gold);border:none;border-radius:8px;color:#0a1a0e;font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.1em;cursor:pointer}
+/* Tappable score cell on card */
+.sc-tbl td.editable{cursor:pointer}
+.sc-tbl td.editable:active{background:rgba(240,192,64,.15)}
+.quick-score-strip{display:none;gap:4px;margin-top:5px;padding:4px 0}
+.player-block.selected .quick-score-strip{display:flex}
+.qs-btn{flex:1;padding:8px 2px;border:none;border-radius:6px;font-family:'Roboto Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:.04em;text-align:center;cursor:pointer;transition:all .12s;line-height:1.2;background:var(--surface);color:var(--muted);border:1px solid var(--border)}
+.qs-btn:active{transform:scale(.95)}
+.qs-btn.active-score{outline:2px solid var(--gold);outline-offset:1px}
+.qs-eagle{background:#2a2200;color:#f0c040;border-color:#c9a84c}
+.qs-birdie{background:#0d2e18;color:var(--pos);border-color:var(--pos)}
+.qs-par{background:var(--surface);color:var(--text);border-color:var(--border)}
+.qs-bogey{background:#2e1a00;color:#e8a040;border-color:#c07020}
+.qs-dbl{background:#2e0d0d;color:var(--neg);border-color:var(--neg)}
+.qs-tri{background:#1e0808;color:#cc2222;border-color:#991111}
+
+/* ── Custom Money Numpad ── */
+#numpad-overlay{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.55);display:none;align-items:flex-end}
+#numpad-overlay.open{display:flex}
+#numpad-sheet{width:100%;background:var(--surface);border-top:2px solid var(--gold);border-radius:16px 16px 0 0;padding:0 0 env(safe-area-inset-bottom,0);transform:translateY(100%);transition:transform .22s ease}
+#numpad-overlay.open #numpad-sheet{transform:translateY(0)}
+#numpad-display{display:flex;align-items:center;justify-content:space-between;padding:12px 18px 8px;border-bottom:1px solid var(--border)}
+#numpad-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:var(--muted)}
+#numpad-value{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:.04em;min-width:120px;text-align:right;transition:color .1s}
+#numpad-value.pos{color:var(--pos)}#numpad-value.neg{color:var(--neg)}#numpad-value.zero{color:var(--muted)}
+#numpad-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);margin:1px}
+.np-btn{background:var(--card);border:none;color:var(--text);font-family:'Bebas Neue',sans-serif;font-size:28px;padding:18px 0;text-align:center;cursor:pointer;transition:background .1s;user-select:none;-webkit-user-select:none}
+.np-btn:active{background:var(--border)}
+.np-btn.np-sign{font-size:22px;color:var(--gold)}
+.np-btn.np-back{font-size:22px;color:var(--muted)}
+.np-btn.np-done{background:var(--gold);color:#1a2e22;font-size:22px;letter-spacing:.1em}
+.np-btn.np-done:active{background:var(--gold-dim)}
+
+/* Team rows */
+.tm-row{display:flex;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);gap:6px}
+.tm-row:last-child{border-bottom:none}
+.tm-lbl{flex:1;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.tm-in{width:80px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--green);font-family:'Bebas Neue',sans-serif;font-size:26px;text-align:center;padding:3px 4px;outline:none}
+.tm-in:focus{border-color:var(--gold)}
+
+/* Hole total + low ball */
+.money-total-row{display:flex;align-items:center;padding:9px 0;gap:6px;margin-top:4px;border-top:2px solid var(--border)}
+.money-total-lbl{flex:1;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+.money-total-val{font-family:'Bebas Neue',sans-serif;font-size:26px}
+.money-total-val.pos{color:var(--pos)}.money-total-val.neg{color:var(--neg)}.money-total-val.zero{color:var(--muted)}
+.lb-row{display:flex;align-items:center;padding:8px 0;gap:12px}
+.lb-block{display:flex;flex-direction:column;align-items:center;flex:1}
+.lb-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:2px}
+.lb-val{font-family:'Bebas Neue',sans-serif;font-size:30px;color:var(--gold);line-height:1}
+.lb-sep{font-size:22px;color:var(--border)}
+
+.hole-arrows{flex-shrink:0;display:flex;justify-content:space-between;align-items:center;padding:8px 16px;background:var(--card);border-top:1px solid var(--border)}
+.arrow-btn{background:none;border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:22px;width:50px;height:40px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.arrow-btn:active{background:var(--border)}
+.hole-indicator{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--muted);letter-spacing:.1em}
+
+/* ════════ SCORECARD ════════ */
+.card-actions{display:flex;gap:10px;padding:10px 14px;background:var(--surface);border-bottom:1px solid var(--border)}
+.share-btn{flex:1;padding:10px;background:var(--gold);border:none;border-radius:7px;color:#1a2e22;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:.12em;cursor:pointer;transition:opacity .15s}
+.share-btn:active{opacity:.8}
+
+.sc-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.sc-tbl{border-collapse:collapse;font-size:13px;white-space:nowrap;min-width:100%}
+.sc-tbl th,.sc-tbl td{padding:7px 6px;text-align:center;border:1px solid var(--border);min-width:30px}
+.sc-tbl thead th{background:#1c3828;color:var(--muted);font-weight:700;font-size:11px;letter-spacing:.1em;text-transform:uppercase;position:sticky;top:0;z-index:3}
+.sc-tbl .row-lbl{text-align:left;padding-left:8px;font-weight:700;background:#1c3828;position:sticky;left:0;z-index:2;min-width:88px;font-size:12px}
+.sc-tbl .tot-col{background:var(--card);font-weight:700;color:var(--gold)}
+.sc-tbl .pm-col{background:#223c30;font-weight:700;font-size:12px}
+.sc-tbl .sep-row td{height:4px;background:#162e22;padding:0;border-color:#162e22}
+.sc-tbl .section-lbl-row td{background:#192e22;color:var(--gold);font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;padding:4px 8px;text-align:left}
+
+/* Score cell with optional stroke dot */
+.sc-cell{position:relative;display:inline-block;line-height:1;padding-top:5px}
+.sc-cell .stroke-dot{position:absolute;top:-3px;right:-4px;width:5px;height:5px;border-radius:50%;background:var(--text)}
+/* Birdie circle */
+.mk-birdie{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;border:2px solid var(--pos);color:var(--pos);font-weight:700;font-size:13px}
+
+/* Tie X */
+.score-tie{position:relative;display:inline-block;color:var(--muted);min-width:18px;text-align:center}
+.score-tie::after{content:'✕';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:20px;color:var(--neg);opacity:.7;pointer-events:none;line-height:1}
+.lb-init{font-size:9px;color:var(--muted);vertical-align:super;margin-left:1px;font-family:'Roboto Condensed',sans-serif}
+
+/* +/- value colors */
+.pm-pos{color:var(--pos);font-weight:700}.pm-neg{color:var(--neg);font-weight:700}.pm-even{color:var(--muted)}
+
+.tot-bar{background:var(--card);border-top:2px solid var(--gold);padding:12px 16px;display:flex;gap:10px;overflow-x:auto}
+.tot-player{flex-shrink:0;text-align:center;min-width:72px}
+.tot-p-name{font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:1px}
+.tot-p-score{font-family:'Bebas Neue',sans-serif;font-size:32px;line-height:1;color:var(--text)}
+.tot-p-sub{font-size:9px;color:var(--muted)}
+.tot-p-money{font-family:'Bebas Neue',sans-serif;font-size:20px}
+.money-pos{color:var(--pos);font-weight:700}.money-neg{color:var(--neg)}
+
+/* ── PRINT STYLES — PDF handled by jsPDF ── */
+@media print{ body{display:none} }
+</style>
+</head>
+<body>
+
+<!-- ═══ SETUP ═══ -->
+<div id="s-setup" class="screen active">
+  <div class="pg-header">
+    <div class="pg-title">PALENCIA CLUB</div>
+    <div class="pg-sub">600 Palencia Drive · St. Augustine, FL</div>
+  </div>
+  <div class="sect">
+    <div class="sect-title">Player Directory — Tap to Add to Card</div>
+    <div class="dir-grid" id="dir-grid"></div>
+  </div>
+  <div class="sect" style="padding-top:0">
+    <div class="sect-title">Players — Name · Handicap · Tee · Venmo</div>
+    <div class="player-card">
+      <div class="player-top"><div class="p-num">1</div><input class="p-name-in" id="p0name" type="text" placeholder="Player 1 Name" autocorrect="off" autocomplete="off" spellcheck="false"><span class="lbl">HCP</span><input class="num-in" id="p0hcp" type="number" inputmode="numeric" placeholder="0" min="0" max="54" autocomplete="off"></div>
+      <div class="player-tee-row" id="ptee0">
+        <button class="ptee-btn" data-tee="gold" onclick="selectPlayerTee(0,'gold')">● GOLD</button>
+        <button class="ptee-btn" data-tee="green" onclick="selectPlayerTee(0,'green')">● GREEN</button>
+        <button class="ptee-btn" data-tee="black" onclick="selectPlayerTee(0,'black')">● BLACK</button>
+        <button class="ptee-btn sel" data-tee="blue" onclick="selectPlayerTee(0,'blue')">● BLUE</button>
+      </div>
+      <div class="player-venmo-row"><span class="venmo-lbl">Venmo</span><input class="venmo-in" id="p0venmo" type="text" placeholder="@handle"></div>
+    </div>
+    <div class="player-card">
+      <div class="player-top"><div class="p-num">2</div><input class="p-name-in" id="p1name" type="text" placeholder="Player 2 Name" autocorrect="off" autocomplete="off" spellcheck="false"><span class="lbl">HCP</span><input class="num-in" id="p1hcp" type="number" inputmode="numeric" placeholder="0" min="0" max="54" autocomplete="off"></div>
+      <div class="player-tee-row" id="ptee1">
+        <button class="ptee-btn" data-tee="gold" onclick="selectPlayerTee(1,'gold')">● GOLD</button>
+        <button class="ptee-btn" data-tee="green" onclick="selectPlayerTee(1,'green')">● GREEN</button>
+        <button class="ptee-btn" data-tee="black" onclick="selectPlayerTee(1,'black')">● BLACK</button>
+        <button class="ptee-btn sel" data-tee="blue" onclick="selectPlayerTee(1,'blue')">● BLUE</button>
+      </div>
+      <div class="player-venmo-row"><span class="venmo-lbl">Venmo</span><input class="venmo-in" id="p1venmo" type="text" placeholder="@handle"></div>
+    </div>
+    <div class="player-card">
+      <div class="player-top"><div class="p-num">3</div><input class="p-name-in" id="p2name" type="text" placeholder="Player 3 Name" autocorrect="off" autocomplete="off" spellcheck="false"><span class="lbl">HCP</span><input class="num-in" id="p2hcp" type="number" inputmode="numeric" placeholder="0" min="0" max="54" autocomplete="off"></div>
+      <div class="player-tee-row" id="ptee2">
+        <button class="ptee-btn" data-tee="gold" onclick="selectPlayerTee(2,'gold')">● GOLD</button>
+        <button class="ptee-btn" data-tee="green" onclick="selectPlayerTee(2,'green')">● GREEN</button>
+        <button class="ptee-btn" data-tee="black" onclick="selectPlayerTee(2,'black')">● BLACK</button>
+        <button class="ptee-btn sel" data-tee="blue" onclick="selectPlayerTee(2,'blue')">● BLUE</button>
+      </div>
+      <div class="player-venmo-row"><span class="venmo-lbl">Venmo</span><input class="venmo-in" id="p2venmo" type="text" placeholder="@handle"></div>
+    </div>
+    <div class="player-card">
+      <div class="player-top"><div class="p-num">4</div><input class="p-name-in" id="p3name" type="text" placeholder="Player 4 Name" autocorrect="off" autocomplete="off" spellcheck="false"><span class="lbl">HCP</span><input class="num-in" id="p3hcp" type="number" inputmode="numeric" placeholder="0" min="0" max="54" autocomplete="off"></div>
+      <div class="player-tee-row" id="ptee3">
+        <button class="ptee-btn" data-tee="gold" onclick="selectPlayerTee(3,'gold')">● GOLD</button>
+        <button class="ptee-btn" data-tee="green" onclick="selectPlayerTee(3,'green')">● GREEN</button>
+        <button class="ptee-btn" data-tee="black" onclick="selectPlayerTee(3,'black')">● BLACK</button>
+        <button class="ptee-btn sel" data-tee="blue" onclick="selectPlayerTee(3,'blue')">● BLUE</button>
+      </div>
+      <div class="player-venmo-row"><span class="venmo-lbl">Venmo</span><input class="venmo-in" id="p3venmo" type="text" placeholder="@handle"></div>
+    </div>
+  </div>
+  <button class="start-btn" onclick="startRound()">▶ START ROUND</button>
+</div>
+
+<!-- ═══ HOLE ═══ -->
+<div id="s-hole" class="screen">
+  <div class="hole-fixed">
+    <div class="theme-toggle">
+      <span>Theme:</span>
+      <button class="tt-btn active" id="tt-hc" onclick="setTheme('hc')">HIGH CONTRAST</button>
+      <button class="tt-btn" id="tt-light" onclick="setTheme('light')">LIGHT</button>
+      <button class="tt-btn" id="tt-dark" onclick="setTheme('dark')">DARK</button>
+    </div>
+    <div class="hole-nav" id="hole-tabs"></div>
+    <div class="running-bar" id="running-bar"></div>
+    <div class="hole-info" id="hole-info"></div>
+  </div>
+  <div class="score-body" id="score-body"></div>
+  <div class="hole-arrows">
+    <button class="arrow-btn" onclick="changeHole(-1)">‹</button>
+    <span class="hole-indicator" id="hole-indicator">HOLE 1 / 18</span>
+    <button class="arrow-btn" onclick="changeHole(1)">›</button>
+  </div>
+</div>
+
+<!-- ═══ SCORECARD ═══ -->
+<div id="s-card" class="screen">
+  <div class="pg-header"><div class="pg-title">SCORECARD</div><div class="pg-sub">PALENCIA CLUB</div></div>
+  <div class="card-actions">
+    <button class="share-btn" onclick="generatePDF('share')">📤 SHARE SCORECARD</button>
+    <button class="share-btn" style="background:var(--surface);color:var(--gold);border:1px solid var(--gold)" onclick="generatePDF('save')">🖨 SAVE AS PDF</button>
+  </div>
+  <div class="tot-bar" id="tot-bar"></div>
+  <div class="sc-wrap"><table class="sc-tbl" id="sc-tbl"></table></div>
+</div>
+
+<!-- ═══ NAV ═══ -->
+<div id="nav">
+  <button class="nav-btn" onclick="showScreen('setup')"><span class="nav-icon">⚙</span>Setup</button>
+  <button class="nav-btn active" onclick="showScreen('hole')"><span class="nav-icon">⛳</span>Hole</button>
+  <button class="nav-btn" onclick="showScreen('card')"><span class="nav-icon">📋</span>Card</button>
+</div>
+
+<script>
+/* ══ DIRECTORY ══ */
+const DIRECTORY=[
+  {name:'Joe Patalano',       phone:'774-248-4773', venmo:'joe-patalano'},
+  {name:'Gary Ward',          phone:'301-919-2554', venmo:'G-ward'},
+  {name:'Santiago Cavenaugh', phone:'901-200-5482', venmo:'santiago-cavanagh'},
+  {name:'Dustin Enterline',   phone:'918-851-3285', venmo:'dustin-enterline'},
+  {name:'Dale Black',         phone:'', venmo:''},
+  {name:'Shane Sheltra',      phone:'', venmo:''},
+  {name:'Chuck Forcier',      phone:'', venmo:''},
+];
+
+function buildDirectory(){
+  const btns=DIRECTORY.map((p,di)=>{
+    const assigned=isAssigned(di);
+    return`<button class="dir-btn${assigned?' assigned':''}" onclick="assignFromDir(${di})">
+      <div class="dir-name">${p.name}</div>
+      <div class="dir-venmo">${p.venmo?'@'+p.venmo:'—'}</div>
+    </button>`;
+  }).join('');
+  const guest=`<button class="dir-btn" style="border-style:dashed;opacity:.75" onclick="addGuest()">
+    <div class="dir-name" style="color:var(--gold)">+ ADD GUEST</div>
+    <div class="dir-venmo">Enter name manually</div>
+  </button>`;
+  document.getElementById('dir-grid').innerHTML=btns+guest;
+}
+
+function addGuest(){
+  // find first empty slot
+  let slot=-1;
+  for(let i=0;i<4;i++){
+    const n=document.getElementById(`p${i}name`);
+    if(n&&n.value.trim()===''){slot=i;break;}
+  }
+  if(slot===-1){alert('All 4 slots are filled. Clear a player first.');return;}
+  document.getElementById(`p${slot}name`).focus();
+}
+
+function isAssigned(di){
+  return[0,1,2,3].some(pi=>{
+    const n=document.getElementById(`p${pi}name`);
+    return n&&n.value&&n.value.trim()===DIRECTORY[di].name;
+  });
+}
+
+function assignFromDir(di){
+  const p=DIRECTORY[di];
+  // find first empty slot
+  let slot=-1;
+  for(let i=0;i<4;i++){
+    const n=document.getElementById(`p${i}name`);
+    if(n&&n.value.trim()===''){slot=i;break;}
+  }
+  // if already assigned to a slot, clear it (toggle off)
+  for(let i=0;i<4;i++){
+    const n=document.getElementById(`p${i}name`);
+    if(n&&n.value.trim()===p.name){
+      n.value='';
+      document.getElementById(`p${i}venmo`).value='';
+      buildDirectory();return;
+    }
+  }
+  if(slot===-1){alert('All 4 slots filled. Clear a player first.');return;}
+  document.getElementById(`p${slot}name`).value=p.name;
+  document.getElementById(`p${slot}venmo`).value='@'+p.venmo;
+  buildDirectory();
+}
+
+/* ══ COURSE DATA ══ */
+const HOLES=[
+  {h:1, par:4,hcp:3, gold:469,green:452,black:433,blue:423},
+  {h:2, par:4,hcp:13,gold:331,green:321,black:309,blue:300},
+  {h:3, par:3,hcp:15,gold:190,green:169,black:160,blue:126},
+  {h:4, par:5,hcp:5, gold:541,green:504,black:491,blue:480},
+  {h:5, par:3,hcp:17,gold:179,green:164,black:152,blue:133},
+  {h:6, par:4,hcp:9, gold:408,green:386,black:362,blue:345},
+  {h:7, par:4,hcp:1, gold:444,green:397,black:376,blue:367},
+  {h:8, par:4,hcp:11,gold:396,green:359,black:345,blue:326},
+  {h:9, par:5,hcp:7, gold:542,green:523,black:518,blue:502},
+  {h:10,par:4,hcp:6, gold:427,green:402,black:386,blue:343},
+  {h:11,par:4,hcp:16,gold:392,green:384,black:305,blue:300},
+  {h:12,par:3,hcp:14,gold:185,green:168,black:152,blue:134},
+  {h:13,par:5,hcp:10,gold:564,green:537,black:521,blue:502},
+  {h:14,par:4,hcp:2, gold:377,green:370,black:359,blue:348},
+  {h:15,par:3,hcp:18,gold:171,green:168,black:152,blue:145},
+  {h:16,par:4,hcp:4, gold:null,green:null,black:null,blue:null},
+  {h:17,par:4,hcp:8, gold:null,green:null,black:null,blue:null},
+  {h:18,par:5,hcp:12,gold:null,green:null,black:null,blue:null},
+];
+const RATINGS={
+  gold:{rating:75.1,slope:143},green:{rating:73.3,slope:140},
+  black:{rating:71.7,slope:134},blue:{rating:70.4,slope:130},
+};
+const PAR_FRONT=36,PAR_BACK=36,PAR_TOTAL=72;
+
+let state={
+  view:'setup',currentHole:0,selectedPlayer:-1,
+  players:[{name:'',hcp:0,tee:'blue',venmo:''},{name:'',hcp:0,tee:'blue',venmo:''},{name:'',hcp:0,tee:'blue',venmo:''},{name:'',hcp:0,tee:'blue',venmo:''}],
+  scores:      Array.from({length:4},()=>Array(18).fill('')),
+  holeDollars: Array.from({length:18},()=>[null,null,null,null]),
+  teamScores:  Array(18).fill(''),
+  scoresUsed:  Array(18).fill(''),
+};
+
+/* ══ HELPERS ══ */
+function courseHcp(hcp,tee){const r=RATINGS[tee]||RATINGS.blue;return Math.round(hcp*r.slope/113+(r.rating-PAR_TOTAL));}
+function strokesOnHole(chcp,holeHcp){return(chcp>0&&chcp>=holeHcp)?1:0;}
+function netScore(gross,pi,hi){const g=parseInt(gross);if(!g)return null;const s=strokesOnHole(courseHcp(state.players[pi].hcp,state.players[pi].tee),HOLES[hi].hcp);return g-s;}
+function pName(i){return state.players[i].name.trim()||`P${i+1}`;}
+function pNameShort(i){const n=pName(i);return n.length>7?n.slice(0,7):n;}
+function initials(i){
+  const n=state.players[i].name.trim();
+  if(!n)return`P${i+1}`;
+  const parts=n.split(/\s+/).filter(p=>p.length>0);
+  if(parts.length===1)return parts[0].slice(0,2).toUpperCase();
+  return(parts[0][0]+parts[parts.length-1][0]).toUpperCase();
+}
+function fmtMoney(n){if(n===null||n===undefined)return'—';if(n===0)return'$0';return(n>0?'+':'')+`$${Math.abs(n).toFixed(0)}`;}
+function fmtPM(n){if(!n||n===0)return'<span class="pm-even">E</span>';return n>0?`<span class="pm-pos">+${n}</span>`:`<span class="pm-neg">${n}</span>`;}
+function fmtPMtext(n){if(!n||n===0)return'E';return n>0?`+${n}`:`${n}`;}
+function runningTotals(throughHole){return[0,1,2,3].map(pi=>state.holeDollars.slice(0,throughHole+1).reduce((s,hd)=>s+(hd[pi]||0),0));}
+function lowBall(hi){let bG=null,bN=null;for(let pi=0;pi<4;pi++){const g=parseInt(state.scores[pi][hi]);if(!g)continue;if(bG===null||g<bG)bG=g;const n=netScore(g,pi,hi);if(n!==null&&(bN===null||n<bN))bN=n;}return{gross:bG,net:bN};}
+function holeTotalMoney(hi){return state.holeDollars[hi].reduce((s,v)=>s+(v||0),0);}
+
+/* Low ball cell with initials + tie */
+function lbCell(hi,mode){
+  let best=null,winners=[];
+  for(let pi=0;pi<4;pi++){
+    const g=parseInt(state.scores[pi][hi]);if(!g)continue;
+    const val=mode==='gross'?g:netScore(g,pi,hi);
+    if(val===null)continue;
+    if(best===null||val<best){best=val;winners=[pi];}
+    else if(val===best){winners.push(pi);}
+  }
+  if(best===null)return`<span style="color:var(--muted)">·</span>`;
+  if(winners.length===1)return`${best}<span class="lb-init">${initials(winners[0])}</span>`;
+  return`<span class="score-tie">${best}</span>`;
+}
+
+/* ══ SETUP ══ */
+function buildRatings(){
+  const cols={gold:'#c9a84c',green:'#3dbb6f',black:'#c0c0c0',blue:'#4a90d9'};
+  document.getElementById('ratings-body').innerHTML=Object.entries(RATINGS).map(([t,r])=>
+    `<tr><td><span class="dot" style="background:${cols[t]}"></span>${t.toUpperCase()}</td><td>${r.rating}</td><td>${r.slope}</td></tr>`
+  ).join('');
+}
+function selectPlayerTee(pi,tee){
+  state.players[pi].tee=tee;
+  document.querySelectorAll(`#ptee${pi} .ptee-btn`).forEach(b=>b.classList.toggle('sel',b.dataset.tee===tee));
+}
+
+/* ══ HOLE TABS ══ */
+function buildHoleTabs(){
+  let h='';
+  for(let i=0;i<9;i++){const sc=state.scores.some(s=>s[i]!=='');h+=`<button class="h-tab${i===state.currentHole?' active':''}${sc?' scored':''}" onclick="jumpHole(${i})">${i+1}</button>`;}
+  h+=`<button class="h-tab summary-tab${state.currentHole===20?' active':''}" onclick="jumpHole(20)">OUT</button>`;
+  for(let i=9;i<18;i++){const sc=state.scores.some(s=>s[i]!=='');h+=`<button class="h-tab${i===state.currentHole?' active':''}${sc?' scored':''}" onclick="jumpHole(${i})">${i+1}</button>`;}
+  h+=`<button class="h-tab summary-tab${state.currentHole===21?' active':''}" onclick="jumpHole(21)">IN</button>`;
+  h+=`<button class="h-tab summary-tab${state.currentHole===22?' active':''}" onclick="jumpHole(22)">TOT</button>`;
+  document.getElementById('hole-tabs').innerHTML=h;
+  const a=document.querySelector('.h-tab.active');if(a)a.scrollIntoView({inline:'center',behavior:'smooth'});
+}
+
+/* ══ RUNNING BAR ══ */
+function buildRunningBar(){
+  const hi=Math.min(state.currentHole,17);
+  const tots=runningTotals(hi);
+  document.getElementById('running-bar').innerHTML=tots.map((t,pi)=>{
+    const cls=t>0?'pos':t<0?'neg':'zero';
+    return`<div class="rt-cell"><div class="rt-name">${pNameShort(pi)}</div><div class="rt-amt ${cls}">${fmtMoney(t)}</div></div>`;
+  }).join('');
+}
+
+/* ══ HOLE INFO ══ */
+function buildHoleInfo(){
+  const hi=state.currentHole;
+  if(hi>=18){document.getElementById('hole-info').innerHTML='';return;}
+  const hd=HOLES[hi],parCls=`p${hd.par}`;
+  const tColors={gold:'var(--t-gold)',green:'var(--t-green)',black:'var(--t-black)',blue:'var(--t-blue)'};
+  const activePlayers=[0,1,2,3].filter(pi=>state.players[pi].name.trim()!=='');
+  const ydsLines=activePlayers.map(pi=>{const t=state.players[pi].tee,y=hd[t];return`<div class="yds-line" style="color:${tColors[t]}">${pNameShort(pi)}: ${y?y+' yds':'—'}</div>`;}).join('');
+  // running team score through current hole
+  const teamTotal=state.teamScores.slice(0,hi+1).reduce((a,b)=>a+(parseFloat(b)||0),0);
+  const teamThisHole=state.teamScores[hi]||'—';
+  const teamLine=`<div style="border-top:1px solid var(--border);margin-top:3px;padding-top:3px">
+    <div class="yds-line" style="color:var(--green)">Hole: ${teamThisHole}</div>
+    <div class="yds-line" style="color:var(--gold)">Total: ${teamTotal||'—'}</div>
+  </div>`;
+  document.getElementById('hole-info').innerHTML=`
+    <div class="hi-stat"><div class="hi-label">HOLE</div><div class="hi-val ${parCls}">${hd.h}</div></div>
+    <div class="hi-divider"></div>
+    <div class="hi-stat"><div class="hi-label">PAR</div><div class="hi-val ${parCls}">${hd.par}</div></div>
+    <div class="hi-divider"></div>
+    <div class="hi-stat"><div class="hi-label">HCP</div><div class="hi-val hcpv">${hd.hcp}</div></div>
+    <div class="hi-divider"></div>
+    <div class="yds-cell">${ydsLines}${teamLine}</div>`;
+  document.getElementById('hole-indicator').textContent=`HOLE ${hi+1} / 18`;
+}
+
+/* ══ SCORE BODY — 2 sections ══ */
+function buildScoreBody(){
+  const hi=state.currentHole;
+  let html='';
+  const activePlayers=[0,1,2,3].filter(pi=>state.players[pi].name.trim()!=='');
+
+  if(hi>=18){
+    const lbls=['FRONT 9','BACK 9','TOTAL'],keys=['front','back','total'];
+    const lbl=lbls[hi-18]||'TOTAL',key=keys[hi-18]||'total';
+    const tots=[0,1,2,3].map(pi=>{const f=state.scores[pi].slice(0,9).reduce((a,b)=>a+(parseInt(b)||0),0);const bk=state.scores[pi].slice(9,18).reduce((a,b)=>a+(parseInt(b)||0),0);return{front:f,back:bk,total:f+bk};});
+    html+=`<div class="s-divider">${lbl}</div>`;
+    activePlayers.forEach(pi=>{html+=`<div class="pb-row" style="padding:8px 0"><div class="sc-pnum">${pi+1}</div><div class="sc-name">${pName(pi)}</div><div style="font-family:'Bebas Neue',sans-serif;font-size:30px;color:var(--gold)">${tots[pi][key]||'—'}</div></div>`;});
+    document.getElementById('score-body').innerHTML=html;
+    return;
+  }
+
+  /* ─ Section 1: Players (only active) ─ */
+  html+=`<div class="s-divider">Players</div>`;
+  activePlayers.forEach(pi=>{
+    const sc=state.scores[pi][hi],g=parseInt(sc)||0;
+    const chcp=courseHcp(state.players[pi].hcp,state.players[pi].tee);
+    const strokes=strokesOnHole(chcp,HOLES[hi].hcp);
+    const net=g?g-strokes:null;
+    const netStr=net!==null?`NET ${net}${strokes?' ●':''}` :'';
+    const amt=state.holeDollars[hi][pi];
+    const dispTxt=amt!==null?(amt>0?`+$${Math.abs(amt)}`:`-$${Math.abs(amt)}`):'$';
+    const inClass=amt!==null&&amt>0?'pos-in':amt!==null&&amt<0?'neg-in':'';
+    const par=HOLES[hi].par;
+    const qa=(offset)=>(g&&g===par+offset)?'active-score':'';
+    html+=`<div class="player-block">
+      <div class="pb-row">
+        <div class="sc-pnum">${pi+1}</div>
+        <div class="sc-name">${pName(pi)}</div>
+        <div class="sc-net">${netStr}</div>
+        <div class="dl-in ${inClass}" onclick="openNumpad(${pi},${hi},false)">${dispTxt}</div>
+      </div>
+      <div class="quick-score-strip" style="display:flex">
+        <button class="qs-btn qs-eagle ${qa(-2)}" onclick="quickScore(${pi},${hi},-2)">EAGLE<br>-2</button>
+        <button class="qs-btn qs-birdie ${qa(-1)}" onclick="quickScore(${pi},${hi},-1)">BIRDIE<br>-1</button>
+        <button class="qs-btn qs-par ${qa(0)}" onclick="quickScore(${pi},${hi},0)">PAR<br>E</button>
+        <button class="qs-btn qs-bogey ${qa(1)}" onclick="quickScore(${pi},${hi},1)">BOGEY<br>+1</button>
+        <button class="qs-btn qs-dbl ${qa(2)}" onclick="quickScore(${pi},${hi},2)">DBL<br>+2</button>
+        <button class="qs-btn qs-tri ${qa(3)}" onclick="quickScore(${pi},${hi},3)">TRI<br>+3</button>
+      </div>
+    </div>`;
+  });
+
+  /* ─ Section 2: Hole Info ─ */
+  html+=`<div class="s-divider">Hole</div>`;
+
+  // Team score buttons 1-6
+  const tsVal=state.teamScores[hi]||'';
+  const tsNum=parseInt(tsVal)||0;
+  html+=`<div class="tm-row"><div class="tm-lbl">Team Score</div>
+    <div class="ts-strip">
+      ${[1,2,3,4,5,6].map(n=>`<button class="ts-btn${tsNum===n?' ts-sel':''}" onclick="setTeamBtn(${hi},'score',${n})">${n}</button>`).join('')}
+    </div></div>`;
+
+  // Scores used buttons 1-4
+  const suVal=state.scoresUsed[hi]||'';
+  const suNum=parseInt(suVal)||0;
+  html+=`<div class="tm-row" style="border:none"><div class="tm-lbl">Scores Used</div>
+    <div class="ts-strip">
+      ${[1,2,3,4].map(n=>`<button class="ts-btn${suNum===n?' ts-sel':''}" onclick="setTeamBtn(${hi},'used',${n})">${n}</button>`).join('')}
+    </div></div>`;
+
+  const lb=lowBall(hi);
+  html+=`<div class="lb-row">
+    <div class="lb-block"><div class="lb-lbl">LOW GROSS</div><div class="lb-val">${lb.gross!==null?lb.gross:'—'}</div></div>
+    <div class="lb-sep">|</div>
+    <div class="lb-block"><div class="lb-lbl">LOW NET</div><div class="lb-val">${lb.net!==null?lb.net:'—'}</div></div>
+  </div>`;
+  const htot=holeTotalMoney(hi);
+  const htCls=htot>0?'pos':htot<0?'neg':'zero';
+  html+=`<div class="money-total-row"><div class="money-total-lbl">Hole Total $</div><div class="money-total-val ${htCls}">${fmtMoney(htot)}</div></div>`;
+
+  document.getElementById('score-body').innerHTML=html;
+}
+
+/* scroll to top — called only from hole navigation */
+function scrollScoreBodyTop(){
+  const el=document.getElementById('score-body');
+  if(el) el.scrollTop=0;
+}
+
+/* ══ SCORECARD BUILD ══ */
+function buildScorecard(){
+  /* Summary bar */
+  const tots=[0,1,2,3].map(pi=>{
+    const f=state.scores[pi].slice(0,9).reduce((a,b)=>a+(parseInt(b)||0),0);
+    const bk=state.scores[pi].slice(9,18).reduce((a,b)=>a+(parseInt(b)||0),0);
+    const money=state.holeDollars.reduce((s,hd)=>s+(hd[pi]||0),0);
+    return{front:f,back:bk,total:f+bk,money};
+  });
+  document.getElementById('tot-bar').innerHTML=tots.map((t,pi)=>{
+    const mc=t.money>0?'money-pos':t.money<0?'money-neg':'';
+    const pm=t.total?t.total-PAR_TOTAL:null;
+    return`<div class="tot-player">
+      <div class="tot-p-name">${pName(pi)}</div>
+      <div class="tot-p-score">${t.total||'—'}</div>
+      <div class="tot-p-sub">${pm!==null?fmtPMtext(pm):'—'} to par</div>
+      <div class="tot-p-money ${mc}">${fmtMoney(t.money)}</div>
+    </div>`;
+  }).join('');
+
+  /* ── Columns: 1-9, OUT, +/-(F9), 10-18, IN, +/-(B9), +/-(TOT) ── */
+  const hn=[1,2,3,4,5,6,7,8,9,'OUT','+/-',10,11,12,13,14,15,16,17,18,'IN','+/-','TOT'];
+  function thClass(n){if(n==='OUT'||n==='IN'||n==='TOT')return'tot-col';if(n==='+/-')return'pm-col';return'';}
+
+  const hdr='<thead><tr><th class="row-lbl"></th>'+hn.map(n=>`<th class="${thClass(n)}">${n}</th>`).join('')+'</tr></thead>';
+
+  /* Score cell: birdie circle, stroke dot */
+  function scoreCell(score,par,hasStroke){
+    const v=parseInt(score);if(!v)return`<span style="color:var(--muted)">·</span>`;
+    const isBirdie=v-par===-1;
+    const dotHtml=hasStroke?`<span class="stroke-dot"></span>`:'';
+    if(isBirdie)return`<span class="sc-cell"><span class="mk-birdie">${v}</span>${dotHtml}</span>`;
+    return`<span class="sc-cell">${v}${dotHtml}</span>`;
+  }
+
+  /* Running +/- cumulative through a set of holes */
+  function runningPM(sc,startHole,endHole){
+    let sum=0,parSum=0;
+    for(let i=startHole;i<endHole;i++){const g=parseInt(sc[i]);if(!g)continue;sum+=g;parSum+=HOLES[i].par;}
+    if(!sum)return'·';
+    return fmtPM(sum-parSum);
+  }
+
+  /* Player score row — cells tappable to edit */
+  function scoreRow(pi){
+    const sc=state.scores[pi];
+    const chcp=courseHcp(state.players[pi].hcp,state.players[pi].tee);
+    const f9=sc.slice(0,9).reduce((a,b)=>a+(parseInt(b)||0),0);
+    const bk=sc.slice(9,18).reduce((a,b)=>a+(parseInt(b)||0),0);
+    const f9pm=f9?f9-PAR_FRONT:null;
+    const bkpm=bk?bk-PAR_BACK:null;
+    const totpm=f9&&bk?f9+bk-PAR_TOTAL:null;
+    return`<tr><td class="row-lbl">${pName(pi)}</td>`+
+      sc.slice(0,9).map((s,i)=>`<td class="editable" onclick="openCardEdit(${pi},${i})">${scoreCell(s,HOLES[i].par,strokesOnHole(chcp,HOLES[i].hcp)===1)}</td>`).join('')+
+      `<td class="tot-col">${f9||'·'}</td>`+
+      `<td class="pm-col">${f9pm!==null?fmtPM(f9pm):'·'}</td>`+
+      sc.slice(9,18).map((s,i)=>`<td class="editable" onclick="openCardEdit(${pi},${i+9})">${scoreCell(s,HOLES[i+9].par,strokesOnHole(chcp,HOLES[i+9].hcp)===1)}</td>`).join('')+
+      `<td class="tot-col">${bk||'·'}</td>`+
+      `<td class="pm-col">${bkpm!==null?fmtPM(bkpm):'·'}</td>`+
+      `<td class="tot-col">${totpm!==null?fmtPM(totpm):'·'}</td></tr>`;
+  }
+
+  const activePlayers=[0,1,2,3].filter(pi=>state.players[pi].name.trim()!=='');
+
+  /* CARD rows: Par + HCP */
+  const parRow=`<tr><td class="row-lbl" style="color:var(--muted)">PAR</td>`+
+    HOLES.slice(0,9).map(h=>`<td style="color:var(--muted)">${h.par}</td>`).join('')+
+    `<td class="tot-col" style="color:var(--muted)">36</td><td class="pm-col"></td>`+
+    HOLES.slice(9).map(h=>`<td style="color:var(--muted)">${h.par}</td>`).join('')+
+    `<td class="tot-col" style="color:var(--muted)">36</td><td class="pm-col"></td><td class="tot-col" style="color:var(--muted)">72</td></tr>`;
+  const hcpRow=`<tr><td class="row-lbl" style="color:var(--muted);font-size:11px">HCP</td>`+
+    HOLES.slice(0,9).map(h=>`<td style="color:var(--muted);font-size:11px">${h.hcp}</td>`).join('')+
+    `<td class="tot-col"></td><td class="pm-col"></td>`+
+    HOLES.slice(9).map(h=>`<td style="color:var(--muted);font-size:11px">${h.hcp}</td>`).join('')+
+    `<td class="tot-col"></td><td class="pm-col"></td><td class="tot-col"></td></tr>`;
+
+  /* Team + scores used */
+  const teamRow=`<tr><td class="row-lbl" style="color:var(--green)">TEAM</td>`+
+    state.teamScores.slice(0,9).map(s=>`<td style="color:var(--green)">${s||'·'}</td>`).join('')+
+    `<td class="tot-col" style="color:var(--green)">${state.teamScores.slice(0,9).reduce((a,b)=>a+(parseFloat(b)||0),0)||'·'}</td><td class="pm-col"></td>`+
+    state.teamScores.slice(9).map(s=>`<td style="color:var(--green)">${s||'·'}</td>`).join('')+
+    `<td class="tot-col" style="color:var(--green)">${state.teamScores.slice(9).reduce((a,b)=>a+(parseFloat(b)||0),0)||'·'}</td><td class="pm-col"></td>`+
+    `<td class="tot-col" style="color:var(--green)">${state.teamScores.reduce((a,b)=>a+(parseFloat(b)||0),0)||'·'}</td></tr>`;
+  const suF9=state.scoresUsed.slice(0,9).reduce((a,b)=>a+(parseInt(b)||0),0);
+  const suB9=state.scoresUsed.slice(9).reduce((a,b)=>a+(parseInt(b)||0),0);
+  const suTot=suF9+suB9;
+  const usedRow=`<tr><td class="row-lbl" style="color:var(--muted);font-size:11px">USED</td>`+
+    state.scoresUsed.slice(0,9).map(s=>`<td style="color:var(--muted)">${s||'·'}</td>`).join('')+
+    `<td class="tot-col" style="color:var(--muted)">${suF9||'·'}</td><td class="pm-col"></td>`+
+    state.scoresUsed.slice(9).map(s=>`<td style="color:var(--muted)">${s||'·'}</td>`).join('')+
+    `<td class="tot-col" style="color:var(--muted)">${suB9||'·'}</td><td class="pm-col"></td>`+
+    `<td class="tot-col" style="color:var(--muted);font-weight:700">${suTot||'·'}</td></tr>`;
+
+  /* Low ball rows */
+  const lbGArr=HOLES.map((_,hi)=>lbCell(hi,'gross'));
+  const lbNArr=HOLES.map((_,hi)=>lbCell(hi,'net'));
+  const lbGRaw=HOLES.map((_,hi)=>{let b=null;for(let pi=0;pi<4;pi++){const g=parseInt(state.scores[pi][hi]);if(g&&(b===null||g<b))b=g;}return b;});
+  const lbNRaw=HOLES.map((_,hi)=>{let b=null;for(let pi=0;pi<4;pi++){const g=parseInt(state.scores[pi][hi]);if(!g)continue;const n=netScore(g,pi,hi);if(n!==null&&(b===null||n<b))b=n;}return b;});
+  const lgF9=lbGRaw.slice(0,9).reduce((a,b)=>a+(b||0),0);
+  const lgB9=lbGRaw.slice(9).reduce((a,b)=>a+(b||0),0);
+  const lnF9=lbNRaw.slice(0,9).reduce((a,b)=>a+(b||0),0);
+  const lnB9=lbNRaw.slice(9).reduce((a,b)=>a+(b||0),0);
+  const lbGrossRow=`<tr><td class="row-lbl" style="color:var(--gold);font-size:11px">LB GROSS</td>`+
+    lbGArr.slice(0,9).map(c=>`<td style="color:var(--gold)">${c}</td>`).join('')+
+    `<td class="tot-col">${lgF9||'·'}</td><td class="pm-col">${lgF9?fmtPM(lgF9-PAR_FRONT):'·'}</td>`+
+    lbGArr.slice(9).map(c=>`<td style="color:var(--gold)">${c}</td>`).join('')+
+    `<td class="tot-col">${lgB9||'·'}</td><td class="pm-col">${lgB9?fmtPM(lgB9-PAR_BACK):'·'}</td>`+
+    `<td class="tot-col">${lgF9&&lgB9?lgF9+lgB9:'·'}</td></tr>`;
+  const lbNetRow=`<tr><td class="row-lbl" style="color:var(--gold-dim);font-size:11px">LB NET</td>`+
+    lbNArr.slice(0,9).map(c=>`<td style="color:var(--gold-dim)">${c}</td>`).join('')+
+    `<td class="tot-col" style="color:var(--gold-dim)">${lnF9||'·'}</td><td class="pm-col">${lnF9?fmtPM(lnF9-PAR_FRONT):'·'}</td>`+
+    lbNArr.slice(9).map(c=>`<td style="color:var(--gold-dim)">${c}</td>`).join('')+
+    `<td class="tot-col" style="color:var(--gold-dim)">${lnB9||'·'}</td><td class="pm-col">${lnB9?fmtPM(lnB9-PAR_BACK):'·'}</td>`+
+    `<td class="tot-col" style="color:var(--gold-dim)">${lnF9&&lnB9?lnF9+lnB9:'·'}</td></tr>`;
+
+  /* Money rows */
+  function moneyRow(pi){
+    const dollars=state.holeDollars.map(hd=>hd[pi]);
+    const f9m=dollars.slice(0,9).reduce((a,b)=>a+(b||0),0);
+    const bkm=dollars.slice(9,18).reduce((a,b)=>a+(b||0),0);
+    const tot=f9m+bkm;
+    return`<tr><td class="row-lbl">${pName(pi)}</td>`+
+      dollars.slice(0,9).map(m=>m===null?`<td style="color:var(--muted)">—</td>`:`<td class="${m>0?'money-pos':m<0?'money-neg':''}" style="font-size:12px">${fmtMoney(m)}</td>`).join('')+
+      `<td class="tot-col ${f9m>0?'money-pos':f9m<0?'money-neg':''}">${fmtMoney(f9m)}</td><td class="pm-col"></td>`+
+      dollars.slice(9,18).map(m=>m===null?`<td style="color:var(--muted)">—</td>`:`<td class="${m>0?'money-pos':m<0?'money-neg':''}" style="font-size:12px">${fmtMoney(m)}</td>`).join('')+
+      `<td class="tot-col ${bkm>0?'money-pos':bkm<0?'money-neg':''}">${fmtMoney(bkm)}</td><td class="pm-col"></td>`+
+      `<td class="tot-col ${tot>0?'money-pos':tot<0?'money-neg':''}">${fmtMoney(tot)}</td></tr>`;
+  }
+
+  /* Hole total money */
+  const htArr=HOLES.map((_,hi)=>holeTotalMoney(hi));
+  const htF9=htArr.slice(0,9).reduce((a,b)=>a+b,0);
+  const htB9=htArr.slice(9).reduce((a,b)=>a+b,0);
+  const holeTotRow=`<tr style="background:#1c2e20"><td class="row-lbl" style="color:var(--gold);font-size:12px;background:#1c2e20">HOLE TOTAL</td>`+
+    htArr.slice(0,9).map(t=>`<td class="${t>0?'money-pos':t<0?'money-neg':''}" style="font-size:12px;font-weight:700">${fmtMoney(t)}</td>`).join('')+
+    `<td class="tot-col ${htF9>0?'money-pos':htF9<0?'money-neg':''}">${fmtMoney(htF9)}</td><td class="pm-col"></td>`+
+    htArr.slice(9).map(t=>`<td class="${t>0?'money-pos':t<0?'money-neg':''}" style="font-size:12px;font-weight:700">${fmtMoney(t)}</td>`).join('')+
+    `<td class="tot-col ${htB9>0?'money-pos':htB9<0?'money-neg':''}">${fmtMoney(htB9)}</td><td class="pm-col"></td>`+
+    `<td class="tot-col ${(htF9+htB9)>0?'money-pos':(htF9+htB9)<0?'money-neg':''}">${fmtMoney(htF9+htB9)}</td></tr>`;
+
+  const secLabel=txt=>`<tr class="section-lbl-row"><td colspan="${hn.length+1}">${txt}</td></tr>`;
+  const sep=`<tr class="sep-row"><td colspan="${hn.length+1}"></td></tr>`;
+
+  document.getElementById('sc-tbl').innerHTML=hdr+'<tbody>'+
+    secLabel('▸ CARD')+parRow+hcpRow+sep+
+    secLabel('▸ SCORES')+
+    activePlayers.map(pi=>scoreRow(pi)).join('')+
+    teamRow+usedRow+lbGrossRow+lbNetRow+sep+
+    secLabel('▸ MONEY')+
+    activePlayers.map(pi=>moneyRow(pi)).join('')+
+    holeTotRow+
+    '</tbody>';
+
+  /* ── Populate print-only Venmo block ── */
+  const venmoDiv=document.getElementById('print-venmo');
+  const venmoItems=[0,1,2,3].map(pi=>{
+    const money=state.holeDollars.reduce((s,hd)=>s+(hd[pi]||0),0);
+    const v=state.players[pi].venmo;
+    if(!v) return null;
+    const amt=Math.abs(money).toFixed(0);
+    if(money<0) return`<div style="margin:3px 0"><strong>${pName(pi)}</strong> owes <strong>$${amt}</strong> &rarr; <span style="color:#0050d0">venmo.com/${v}</span></div>`;
+    if(money>0) return`<div style="margin:3px 0"><strong>${pName(pi)}</strong> wins <strong>$${amt}</strong></div>`;
+    return`<div style="margin:3px 0"><strong>${pName(pi)}</strong> — even</div>`;
+  }).filter(Boolean);
+  if(venmoItems.length){
+    venmoDiv.innerHTML='<div style="font-weight:700;margin-bottom:6px;font-size:12px">PAY VIA VENMO</div>'+venmoItems.join('');
+  } else {
+    venmoDiv.innerHTML='';
+  }
+}
+
+/* ══ PDF / SHARE — self-contained, no external libraries ══ */
+function generatePDF(mode){
+  readSetupState();
+  const html = buildPrintHTML();
+
+  if(mode==='share'){
+    // Share as HTML file — opens natively on any device
+    const blob = new Blob([html], {type:'text/html'});
+    const file = new File([blob], `Palencia_${dateStr()}.html`, {type:'text/html'});
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      navigator.share({files:[file], title:'Palencia Club Scorecard'}).catch(()=>openPrintWindow(html));
+      return;
+    }
+    // Fallback: open in new tab so user can share from there
+    openPrintWindow(html);
+    return;
+  }
+
+  // Save as PDF — open print window, browser handles PDF
+  openPrintWindow(html);
+}
+
+function openPrintWindow(html){
+  const w = window.open('','_blank');
+  if(!w){ alert('Allow popups for this site to save PDF.'); return; }
+  w.document.write(html);
+  w.document.close();
+  w.focus();
+  // slight delay so content renders before print dialog
+  setTimeout(()=>{ w.print(); }, 400);
+}
+
+function dateStr(){
+  return new Date().toLocaleDateString('en-US',{month:'2-digit',day:'2-digit',year:'numeric'}).replace(/\//g,'-');
+}
+
+function buildPrintHTML(){
+  const hn = [1,2,3,4,5,6,7,8,9,'OUT','+/-',10,11,12,13,14,15,16,17,18,'IN','+/-','TOT'];
+
+  function pmTxt(n){ if(!n||n===0)return'E'; return n>0?`+${n}`:String(n); }
+  function pmColor(v){ if(v.startsWith('+'))return'#3a9e5f'; if(v.startsWith('-'))return'#c03030'; return'#888'; }
+  function mColor(v){ if(!v||v==='—')return'#888'; if(v.startsWith('+'))return'#3a9e5f'; if(v.startsWith('-'))return'#c03030'; return'#333'; }
+
+  // player summary
+  const summaryHTML = [0,1,2,3].map(pi=>{
+    const f=state.scores[pi].slice(0,9).reduce((a,b)=>a+(parseInt(b)||0),0);
+    const bk=state.scores[pi].slice(9,18).reduce((a,b)=>a+(parseInt(b)||0),0);
+    const tot=f+bk;
+    const pm=tot?pmTxt(tot-PAR_TOTAL):'—';
+    const money=state.holeDollars.reduce((s,hd)=>s+(hd[pi]||0),0);
+    const mc=money>0?'#3a9e5f':money<0?'#c03030':'#888';
+    const pmc=pm.startsWith('+')?'#3a9e5f':pm.startsWith('-')?'#c03030':'#888';
+    return `<div class="ps">
+      <div class="ps-name">${pName(pi)}</div>
+      <div class="ps-score">${tot||'—'}</div>
+      <div class="ps-pm" style="color:${pmc}">${pm} to par</div>
+      <div class="ps-money" style="color:${mc}">${fmtMoney(money)}</div>
+    </div>`;
+  }).join('');
+
+  // table header
+  const thRow = `<tr><th class="rl"></th>${hn.map(n=>{
+    const cls=(n==='OUT'||n==='IN'||n==='TOT')?'tc':n==='+/-'?'pc':'';
+    return `<th class="${cls}">${n}</th>`;
+  }).join('')}</tr>`;
+
+  // helpers
+  function tc(val,cls='',style=''){
+    return `<td class="${cls}"${style?` style="${style}"`:''}>${val}</td>`;
+  }
+  function secRow(lbl){
+    return `<tr><td colspan="${hn.length+1}" class="sec">${lbl}</td></tr>`;
+  }
+
+  // PAR row
+  const parCells = HOLES.map(h=>`<td class="mt">${h.par}</td>`).join('');
+  const parRow=`<tr><td class="rl mt">PAR</td>${parCells.slice(0,HOLES.slice(0,9).map(h=>`<td class="mt">${h.par}</td>`).join('').length)}${HOLES.slice(0,9).map(h=>`<td class="mt">${h.par}</td>`).join('')}<td class="tc mt">36</td><td class="pc"></td>${HOLES.slice(9).map(h=>`<td class="mt">${h.par}</td>`).join('')}<td class="tc mt">36</td><td class="pc"></td><td class="tc mt">72</td></tr>`;
+
+  // rebuild par/hcp cleanly
+  function buildRow(label, vals9, tot1, mid, vals9b, tot2, last, cls='', style=''){
+    return `<tr>
+      <td class="rl${cls?' '+cls:''}"${style?` style="${style}"`:''}>${label}</td>
+      ${vals9.map(v=>`<td${style?` style="${style}"`:''}>${v}</td>`).join('')}
+      <td class="tc"${style?` style="${style}"`:''}>${tot1}</td>
+      <td class="pc">${mid}</td>
+      ${vals9b.map(v=>`<td${style?` style="${style}"`:''}>${v}</td>`).join('')}
+      <td class="tc"${style?` style="${style}"`:''}>${tot2}</td>
+      <td class="pc">${''}</td>
+      <td class="tc"${style?` style="${style}"`:''}>${last}</td>
+    </tr>`;
+  }
+
+  const parVals = HOLES.map(h=>String(h.par));
+  const hcpVals = HOLES.map(h=>String(h.hcp));
+  const parRowHTML = buildRow('PAR', parVals.slice(0,9),'36','',parVals.slice(9),'36','72','','color:#888');
+  const hcpRowHTML = buildRow('HCP', hcpVals.slice(0,9),'','',hcpVals.slice(9),'','','','color:#888;font-size:8px');
+
+  // score rows
+  function scoreRowHTML(pi){
+    const sc=state.scores[pi];
+    const chcp=courseHcp(state.players[pi].hcp,state.players[pi].tee);
+    const f9=sc.slice(0,9).reduce((a,b)=>a+(parseInt(b)||0),0);
+    const bk=sc.slice(9,18).reduce((a,b)=>a+(parseInt(b)||0),0);
+    const f9pm=f9?pmTxt(f9-PAR_FRONT):'';
+    const bkpm=bk?pmTxt(bk-PAR_BACK):'';
+    const totpm=(f9&&bk)?pmTxt(f9+bk-PAR_TOTAL):'·';
+    function cell(s,hi){
+      const g=parseInt(s);if(!g)return'<td>·</td>';
+      const isBirdie=g-HOLES[hi].par===-1;
+      const hasStroke=strokesOnHole(chcp,HOLES[hi].hcp)===1;
+      const dot=hasStroke?'<sup style="font-size:7px">●</sup>':'';
+      if(isBirdie)return`<td><span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;border:1.5px solid #3a9e5f;color:#3a9e5f;font-size:10px">${g}</span>${dot}</td>`;
+      return`<td>${g}${dot}</td>`;
+    }
+    const tpmC=pmColor(totpm);
+    return`<tr>
+      <td class="rl" style="font-weight:700">${pName(pi)}</td>
+      ${sc.slice(0,9).map((s,i)=>cell(s,i)).join('')}
+      <td class="tc">${f9||'·'}</td>
+      <td class="pc" style="color:${pmColor(f9pm)}">${f9pm}</td>
+      ${sc.slice(9,18).map((s,i)=>cell(s,i+9)).join('')}
+      <td class="tc">${bk||'·'}</td>
+      <td class="pc" style="color:${pmColor(bkpm)}">${bkpm}</td>
+      <td class="tc" style="color:${tpmC}">${totpm}</td>
+    </tr>`;
+  }
+
+  // team row
+  const ts=state.teamScores;
+  const tF=ts.slice(0,9).reduce((a,b)=>a+(parseFloat(b)||0),0);
+  const tB=ts.slice(9).reduce((a,b)=>a+(parseFloat(b)||0),0);
+  const teamRowHTML=buildRow('TEAM',ts.slice(0,9).map(s=>s||'·'),tF||'·','',ts.slice(9).map(s=>s||'·'),tB||'·',tF&&tB?tF+tB:'·','','color:#3a9e5f');
+  const suF9p=state.scoresUsed.slice(0,9).reduce((a,b)=>a+(parseInt(b)||0),0);
+  const suB9p=state.scoresUsed.slice(9).reduce((a,b)=>a+(parseInt(b)||0),0);
+  const usedRowHTML=buildRow('USED',state.scoresUsed.slice(0,9).map(s=>s||'·'),suF9p||'·','',state.scoresUsed.slice(9).map(s=>s||'·'),suB9p||'·',suF9p+suB9p||'·','','color:#888;font-size:8px');
+
+  // low ball rows
+  function lbRowHTML(label, mode, style=''){
+    const cells=HOLES.map((_,hi)=>{
+      let best=null,winners=[];
+      for(let pi2=0;pi2<4;pi2++){
+        const g=parseInt(state.scores[pi2][hi]);if(!g)continue;
+        const val=mode==='gross'?g:netScore(g,pi2,hi);
+        if(val===null)continue;
+        if(best===null||val<best){best=val;winners=[pi2];}
+        else if(val===best){winners.push(pi2);}
+      }
+      if(best===null)return'·';
+      if(winners.length===1)return`${best}<sup style="font-size:7px">${initials(winners[0])}</sup>`;
+      return`<strike>${best}</strike>`;
+    });
+    const raw=HOLES.map((_,hi)=>{let b=null;for(let pi2=0;pi2<4;pi2++){const g=parseInt(state.scores[pi2][hi]);if(!g)continue;const val=mode==='gross'?g:netScore(g,pi2,hi);if(val!==null&&(b===null||val<b))b=val;}return b;});
+    const f9=raw.slice(0,9).reduce((a,b)=>a+(b||0),0);
+    const b9=raw.slice(9).reduce((a,b)=>a+(b||0),0);
+    const f9pm=f9?pmTxt(f9-PAR_FRONT):'';
+    const b9pm=b9?pmTxt(b9-PAR_BACK):'';
+    return`<tr style="${style}">
+      <td class="rl">${label}</td>
+      ${cells.slice(0,9).map(c=>`<td>${c}</td>`).join('')}
+      <td class="tc">${f9||'·'}</td>
+      <td class="pc" style="color:${pmColor(f9pm)}">${f9pm}</td>
+      ${cells.slice(9).map(c=>`<td>${c}</td>`).join('')}
+      <td class="tc">${b9||'·'}</td>
+      <td class="pc" style="color:${pmColor(b9pm)}">${b9pm}</td>
+      <td class="tc">${f9&&b9?f9+b9:'·'}</td>
+    </tr>`;
+  }
+
+  // money rows
+  function moneyRowHTML(pi){
+    const d=state.holeDollars.map(hd=>hd[pi]);
+    const f9m=d.slice(0,9).reduce((a,b)=>a+(b||0),0);
+    const bkm=d.slice(9,18).reduce((a,b)=>a+(b||0),0);
+    const tot=f9m+bkm;
+    return`<tr>
+      <td class="rl" style="font-weight:700">${pName(pi)}</td>
+      ${d.slice(0,9).map(m=>`<td style="color:${mColor(m!==null?fmtMoney(m):'—')};font-size:8px">${m!==null?fmtMoney(m):'—'}</td>`).join('')}
+      <td class="tc" style="color:${mColor(fmtMoney(f9m))}">${fmtMoney(f9m)}</td>
+      <td class="pc"></td>
+      ${d.slice(9,18).map(m=>`<td style="color:${mColor(m!==null?fmtMoney(m):'—')};font-size:8px">${m!==null?fmtMoney(m):'—'}</td>`).join('')}
+      <td class="tc" style="color:${mColor(fmtMoney(bkm))}">${fmtMoney(bkm)}</td>
+      <td class="pc"></td>
+      <td class="tc" style="color:${mColor(fmtMoney(tot))};font-weight:700">${fmtMoney(tot)}</td>
+    </tr>`;
+  }
+
+  // hole total row
+  const htArr=HOLES.map((_,hi)=>holeTotalMoney(hi));
+  const htF9=htArr.slice(0,9).reduce((a,b)=>a+b,0);
+  const htB9=htArr.slice(9).reduce((a,b)=>a+b,0);
+  const holeTotHTML=`<tr style="background:#e8e8e8;font-weight:700">
+    <td class="rl">HOLE TOT</td>
+    ${htArr.slice(0,9).map(t=>`<td style="color:${mColor(fmtMoney(t))};font-size:8px">${fmtMoney(t)}</td>`).join('')}
+    <td class="tc" style="color:${mColor(fmtMoney(htF9))}">${fmtMoney(htF9)}</td>
+    <td class="pc"></td>
+    ${htArr.slice(9).map(t=>`<td style="color:${mColor(fmtMoney(t))};font-size:8px">${fmtMoney(t)}</td>`).join('')}
+    <td class="tc" style="color:${mColor(fmtMoney(htB9))}">${fmtMoney(htB9)}</td>
+    <td class="pc"></td>
+    <td class="tc" style="color:${mColor(fmtMoney(htF9+htB9))}">${fmtMoney(htF9+htB9)}</td>
+  </tr>`;
+
+  // venmo section
+  const venmoRows=[0,1,2,3].map(pi=>{
+    const money=state.holeDollars.reduce((s,hd)=>s+(hd[pi]||0),0);
+    const v=state.players[pi].venmo;
+    if(!v)return'';
+    const amt=Math.abs(money).toFixed(0);
+    const col=money<0?'#c03030':money>0?'#3a9e5f':'#888';
+    const txt=money<0?`owes $${amt}`:money>0?`wins $${amt}`:'even';
+    const link=v?`<a href="https://venmo.com/${v}" style="color:#1a6bd0">venmo.com/${v}</a>`:'';
+    return`<tr><td style="padding:3px 6px;font-weight:700">${pName(pi)}</td><td style="color:${col};padding:3px 6px">${txt}</td><td style="padding:3px 6px">${link}</td></tr>`;
+  }).filter(Boolean).join('');
+
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <title>Palencia Club Scorecard — ${dateStr()}</title>
+  <style>
+    @page{size:landscape;margin:8mm}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:Arial,sans-serif;font-size:9px;color:#111;background:#fff}
+    h1{font-size:15px;font-weight:900;letter-spacing:.1em;color:#1a3a28;margin-bottom:2px}
+    .sub{font-size:8px;color:#666;margin-bottom:6px}
+    .summary{display:flex;gap:8px;margin-bottom:8px}
+    .ps{border:1px solid #ccc;border-radius:4px;padding:5px 6px;flex:1;min-width:0;overflow:hidden}
+    .ps-name{font-size:7px;font-weight:700;text-transform:uppercase;color:#555;margin-bottom:1px;word-break:break-word;line-height:1.2}
+    .ps-score{font-size:18px;font-weight:900;color:#1a3a28;line-height:1}
+    .ps-pm{font-size:7px;margin-top:1px}
+    .ps-money{font-size:10px;font-weight:700;margin-top:1px}
+    table{border-collapse:collapse;width:100%;table-layout:fixed}
+    th,td{border:1px solid #ccc;padding:2px 2px;text-align:center;overflow:hidden;font-size:9px}
+    th{background:#ddd;font-weight:700;font-size:8px}
+    td.rl{text-align:left;padding-left:4px;font-size:8px;background:#eee;min-width:60px;font-weight:600;white-space:nowrap}
+    td.tc{background:#ddd;font-weight:700}
+    td.pc{background:#f0f0f0;font-size:8px;font-weight:700;min-width:14px}
+    .sec td{background:#c8d8c8;font-weight:700;font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:#1a3a28;padding:2px 4px;text-align:left}
+    .mt{color:#555}
+    .venmo-hdr{font-weight:700;font-size:9px;background:#eee;padding:3px 6px;margin-top:6px;border-top:2px solid #999}
+    @media print{button{display:none}}
+  </style></head><body>
+  <h1>PALENCIA CLUB SCORECARD</h1>
+  <div class="sub">600 Palencia Drive · St. Augustine, FL &nbsp;·&nbsp; ${dateStr()}</div>
+  <div class="summary">${summaryHTML}</div>
+  <table>
+    <thead>${thRow}</thead>
+    <tbody>
+      ${secRow('▸ CARD')}
+      ${parRowHTML}${hcpRowHTML}
+      ${secRow('▸ SCORES')}
+      ${[0,1,2,3].map(pi=>scoreRowHTML(pi)).join('')}
+      ${teamRowHTML}${usedRowHTML}
+      ${lbRowHTML('LB GROSS','gross','color:#8a6a10')}
+      ${lbRowHTML('LB NET','net','color:#a08030')}
+      ${secRow('▸ MONEY')}
+      ${[0,1,2,3].map(pi=>moneyRowHTML(pi)).join('')}
+      ${holeTotHTML}
+    </tbody>
+  </table>
+  ${venmoRows?`<div class="venmo-hdr">PAY VIA VENMO</div><table style="width:auto;margin-top:2px"><tbody>${venmoRows}</tbody></table>`:''}
+  </body></html>`;
+}
+
+/* ══ Legacy alias ══ */
+function shareCard(){ generatePDF('share'); }
+
+function setTeamBtn(hi,field,val){
+  // toggle off if already selected
+  if(field==='score'){
+    const cur=parseInt(state.teamScores[hi])||0;
+    state.teamScores[hi]=cur===val?'':String(val);
+  }
+  if(field==='used'){
+    const cur=parseInt(state.scoresUsed[hi])||0;
+    state.scoresUsed[hi]=cur===val?'':String(val);
+  }
+  buildScoreBody();
+  buildHoleInfo();
+}
+
+/* ══ CARD SCORE EDIT ══ */
+let _cePI=-1,_ceHI=-1;
+
+function openCardEdit(pi,hi){
+  _cePI=pi; _ceHI=hi;
+  const par=HOLES[hi].par;
+  const cur=parseInt(state.scores[pi][hi])||0;
+  document.getElementById('card-edit-label').textContent=`${pName(pi)} — HOLE ${hi+1}`;
+  const btns=[
+    {offset:-2,label:'EAGLE',cls:'cqs-eagle'},
+    {offset:-1,label:'BIRDIE',cls:'cqs-birdie'},
+    {offset:0,label:'PAR',cls:'cqs-par'},
+    {offset:1,label:'BOGEY',cls:'cqs-bogey'},
+    {offset:2,label:'DBL',cls:'cqs-dbl'},
+    {offset:3,label:'TRI',cls:'cqs-tri'},
+  ];
+  const g=cur;
+  document.getElementById('card-qs-grid').innerHTML=btns.map(b=>{
+    const score=Math.max(1,par+b.offset);
+    const active=g===score?'cqs-sel':'';
+    return`<button class="card-qs-btn ${b.cls} ${active}" onclick="cardEditQuick(${b.offset})">${b.label}<br>${score}</button>`;
+  }).join('');
+  const disp=cur?String(cur):'—';
+  document.getElementById('card-edit-val').textContent=disp;
+  document.getElementById('card-edit-overlay').classList.add('open');
+}
+
+function cardEditQuick(offset){
+  const par=HOLES[_ceHI].par;
+  const score=Math.max(1,par+offset);
+  state.scores[_cePI][_ceHI]=String(score);
+  // refresh buttons
+  const btns=document.querySelectorAll('.card-qs-btn');
+  btns.forEach(b=>{b.classList.remove('cqs-sel');});
+  const cur=parseInt(state.scores[_cePI][_ceHI])||0;
+  document.getElementById('card-edit-val').textContent=String(cur);
+  // rerender buttons to show selection
+  openCardEdit(_cePI,_ceHI);
+}
+
+function cardEditDone(){
+  document.getElementById('card-edit-overlay').classList.remove('open');
+  buildScorecard();
+}
+
+function cardEditOverlayTap(e){
+  if(e.target===document.getElementById('card-edit-overlay')) cardEditDone();
+}
+
+/* ══ TWO-FINGER SWIPE ══ */
+function initSwipe(){
+  const el=document.getElementById('score-body');
+  let t0=null,x0=null;
+  el.addEventListener('touchstart',e=>{
+    if(e.touches.length===2){t0=Date.now();x0=(e.touches[0].clientX+e.touches[1].clientX)/2;}
+  },{passive:true});
+  el.addEventListener('touchend',e=>{
+    if(t0===null||x0===null)return;
+    if(e.changedTouches.length>=1&&Date.now()-t0<600){
+      const x1=(e.changedTouches[0].clientX);
+      const dx=x1-x0;
+      if(Math.abs(dx)>40){changeHole(dx<0?1:-1);}
+    }
+    t0=null;x0=null;
+  },{passive:true});
+}
+
+/* ══ MUTATIONS ══ */
+function setScore(pi,val){
+  const hi=state.currentHole;if(hi>=18)return;
+  const n=parseInt(val);
+  state.scores[pi][hi]=(n>0&&n<=20)?String(n):'';
+  buildScoreBody();
+}
+function setTeam(hi,field,val){
+  if(field==='score'){const n=parseFloat(val);state.teamScores[hi]=!isNaN(n)?String(n):'';}
+  if(field==='used'){const n=parseInt(val);state.scoresUsed[hi]=(n>0)?String(n):'';}
+}
+
+/* ══ NAV ══ */
+function startRound(){readSetupState();showScreen('hole');}
+function readSetupState(){
+  for(let i=0;i<4;i++){
+    state.players[i].name=document.getElementById(`p${i}name`).value.trim();
+    state.players[i].hcp=parseFloat(document.getElementById(`p${i}hcp`).value)||0;
+    const v=document.getElementById(`p${i}venmo`).value.trim().replace(/^@/,'');
+    state.players[i].venmo=v;
+  }
+}
+function showScreen(name){
+  const map={setup:'s-setup',hole:'s-hole',card:'s-card'};
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('#nav .nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(map[name]).classList.add('active');
+  document.querySelectorAll('#nav .nav-btn')[{setup:0,hole:1,card:2}[name]].classList.add('active');
+  state.view=name;
+  if(name==='hole'){renderHole();scrollScoreBodyTop();}
+  if(name==='card'){readSetupState();buildScorecard();}
+}
+let _swipeInit=false;
+function renderHole(){
+  buildHoleTabs();buildRunningBar();buildHoleInfo();buildScoreBody();
+  if(!_swipeInit){initSwipe();_swipeInit=true;}
+}
+function jumpHole(idx){state.currentHole=idx;state.selectedPlayer=-1;renderHole();scrollScoreBodyTop();}
+function changeHole(dir){let n=state.currentHole+dir;if(n<0)n=0;if(n>17)n=17;state.currentHole=n;state.selectedPlayer=-1;renderHole();scrollScoreBodyTop();}
+
+/* ══ CUSTOM NUMPAD ══ */
+let _npPi=-1, _npHi=-1, _npIsTeam=false;
+let _npRaw='';   // digits only, no sign
+let _npNeg=false;
+
+function openNumpad(pi, hi, isTeam){
+  _npPi=pi; _npHi=hi; _npIsTeam=isTeam;
+  // read current value
+  let cur = isTeam ? parseFloat(state.teamScores[hi])||0 : (state.holeDollars[hi][pi]||0);
+  _npNeg = cur < 0;
+  _npRaw = cur!==0 ? String(Math.abs(Math.round(cur))) : '';
+  const lbl = isTeam ? 'TEAM SCORE' : `${pName(pi)} $`;
+  document.getElementById('numpad-label').textContent = lbl;
+  npRefreshDisplay();
+  const ov = document.getElementById('numpad-overlay');
+  ov.classList.add('open');
+}
+
+function npRefreshDisplay(){
+  const val = _npRaw==='' ? 0 : parseInt(_npRaw);
+  const signed = _npNeg ? -val : val;
+  const disp = document.getElementById('numpad-value');
+  if(signed > 0){ disp.textContent=`+$${val}`; disp.className='pos'; }
+  else if(signed < 0){ disp.textContent=`-$${val}`; disp.className='neg'; }
+  else { disp.textContent=`$0`; disp.className='zero'; }
+}
+
+function npDigit(d){
+  if(_npRaw.length >= 5) return;   // cap at 5 digits ($99999)
+  if(_npRaw==='0') _npRaw='';
+  _npRaw += d;
+  npRefreshDisplay();
+}
+
+function npBackspace(){
+  _npRaw = _npRaw.slice(0,-1);
+  npRefreshDisplay();
+}
+
+function npToggleSign(){
+  _npNeg = !_npNeg;
+  npRefreshDisplay();
+}
+
+function npDone(){
+  const val = _npRaw==='' ? 0 : parseInt(_npRaw);
+  const signed = _npNeg ? -val : val;
+  if(_npIsTeam){
+    state.teamScores[_npHi] = val===0 ? '' : String(signed);
+  } else {
+    state.holeDollars[_npHi][_npPi] = val===0 ? null : signed;
+    buildRunningBar();
+  }
+  buildScoreBody();
+  npClose();
+}
+
+function npClose(){
+  document.getElementById('numpad-overlay').classList.remove('open');
+}
+
+function npOverlayTap(e){
+  if(e.target===document.getElementById('numpad-overlay')) npClose();
+}
+
+/* ══ THEME ══ */
+function setTheme(t){
+  document.body.classList.remove('light','dark');
+  if(t==='light') document.body.classList.add('light');
+  if(t==='dark')  document.body.classList.add('dark');
+  document.querySelectorAll('.tt-btn').forEach(b=>b.classList.remove('active'));
+  const map={hc:'tt-hc',light:'tt-light',dark:'tt-dark'};
+  document.querySelectorAll(`#${map[t]}`).forEach(b=>b.classList.add('active'));
+  if(typeof localStorage!=='undefined') localStorage.setItem('pcTheme',t);
+}
+
+/* ══ SELECTED PLAYER ══ */
+function selectPlayer(pi){
+  state.selectedPlayer = (state.selectedPlayer===pi) ? -1 : pi;
+  buildScoreBody();
+}
+
+function quickScore(pi,hi,offset){
+  const par=HOLES[hi].par;
+  const score=Math.max(1, par+offset);
+  state.scores[pi][hi]=String(score);
+  buildScoreBody();
+}
+
+/* ══ INIT ══ */
+buildDirectory();
+const savedTheme=(typeof localStorage!=='undefined'&&localStorage.getItem('pcTheme'))||'hc';
+setTheme(savedTheme);
+</script>
+<!-- ═══ CARD SCORE EDIT OVERLAY ═══ -->
+<div id="card-edit-overlay" onclick="cardEditOverlayTap(event)">
+  <div id="card-edit-sheet">
+    <div id="card-edit-header">
+      <span id="card-edit-label">EDIT SCORE</span>
+      <span id="card-edit-val">—</span>
+    </div>
+    <div class="card-qs-grid" id="card-qs-grid"></div>
+    <button class="card-edit-done" onclick="cardEditDone()">DONE</button>
+  </div>
+</div>
+
+<!-- ═══ CUSTOM MONEY NUMPAD ═══ -->
+<div id="numpad-overlay" onclick="npOverlayTap(event)">
+  <div id="numpad-sheet">
+    <div id="numpad-display">
+      <span id="numpad-label">$ AMOUNT</span>
+      <span id="numpad-value" class="zero">$0</span>
+    </div>
+    <div id="numpad-grid">
+      <button class="np-btn" onclick="npDigit('7')">7</button>
+      <button class="np-btn" onclick="npDigit('8')">8</button>
+      <button class="np-btn" onclick="npDigit('9')">9</button>
+      <button class="np-btn" onclick="npDigit('4')">4</button>
+      <button class="np-btn" onclick="npDigit('5')">5</button>
+      <button class="np-btn" onclick="npDigit('6')">6</button>
+      <button class="np-btn" onclick="npDigit('1')">1</button>
+      <button class="np-btn" onclick="npDigit('2')">2</button>
+      <button class="np-btn" onclick="npDigit('3')">3</button>
+      <button class="np-btn np-sign" onclick="npToggleSign()">+/−</button>
+      <button class="np-btn" onclick="npDigit('0')">0</button>
+      <button class="np-btn np-back" onclick="npBackspace()">⌫</button>
+      <button class="np-btn np-done" style="grid-column:1/-1" onclick="npDone()">DONE</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
